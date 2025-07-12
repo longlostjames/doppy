@@ -33,6 +33,14 @@ stare = doppy.product.Stare.from_halo_data(
     bg_correction_method=doppy.options.BgCorrectionMethod.FIT,
 )
 
+# For overlapped gates (3m spacing instead of normal gate spacing)
+stare = doppy.product.Stare.from_halo_data(
+    data=LIST_OF_STARE_FILE_PATHS,
+    data_bg=LIST_OF_BACKGROUND_FILE_PATHS,
+    bg_correction_method=doppy.options.BgCorrectionMethod.FIT,
+    options=doppy.product.stare.Options(overlapped_gates=True),
+)
+
 stare.write_to_netcdf(FILENAME)
 ```
 
@@ -48,6 +56,17 @@ stare_depol = doppy.product.StareDepol.from_halo_data(
     cross_data_bg=LIST_OF_BACKGROUND_CROSS_FILE_PATHS,
     bg_correction_method=doppy.options.BgCorrectionMethod.FIT,
     polariser_bleed_through=0,
+)
+
+# For overlapped gates (3m spacing instead of normal gate spacing)
+stare_depol = doppy.product.StareDepol.from_halo_data(
+    co_data=LIST_OF_STARE_CO_FILE_PATHS,
+    co_data_bg=LIST_OF_BACKGROUND_CO_FILE_PATHS,
+    cross_data=LIST_OF_STARE_CROSS_FILE_PATHS,
+    cross_data_bg=LIST_OF_BACKGROUND_CROSS_FILE_PATHS,
+    bg_correction_method=doppy.options.BgCorrectionMethod.FIT,
+    polariser_bleed_through=0,
+    options=doppy.product.stare.Options(overlapped_gates=True),
 )
 
 stare_depol.write_to_netcdf(FILENAME)
@@ -90,6 +109,9 @@ import doppy
 raws_hpl = doppy.raw.HaloHpl.from_srcs(LIST_OF_HPL_FILES)
 raws_bg = doppy.raw.HaloBg.from_srcs(LIST_OF_BACKGROUND_FILES)
 raw_system_params = doppy.raw.HaloSysParams.from_src(SYSTEM_PARAMS_FILENAME)
+
+# Halo with overlapped gates (3m spacing instead of normal gate spacing)
+raws_hpl_overlapped = doppy.raw.HaloHpl.from_srcs(LIST_OF_HPL_FILES, overlapped_gates=True)
 
 # Windcube WLS200S
 raws_wls200s = doppy.raw.WindCube.from_vad_or_dbs_srcs(LIST_OF_VAD_NETCDF_FILES)
