@@ -35,20 +35,20 @@ class HaloHpl:
 
     @classmethod
     def from_srcs(
-        cls, data: Sequence[str | bytes | Path | BufferedIOBase]
+        cls, data: Sequence[str | bytes | Path | BufferedIOBase], overlapped_gates: bool = False
     ) -> list[HaloHpl]:
         data_bytes = [bytes_from_src(src) for src in data]
         raw_dicts = doppy.rs.raw.halo_hpl.from_bytes_srcs(data_bytes)
         try:
-            return [_raw_tuple2halo_hpl(r) for r in raw_dicts]
+            return [_raw_tuple2halo_hpl(r, overlapped_gates=overlapped_gates) for r in raw_dicts]
         except RuntimeError as err:
             raise exceptions.RawParsingError(err) from err
 
     @classmethod
-    def from_src(cls, data: str | Path | bytes | BufferedIOBase) -> HaloHpl:
+    def from_src(cls, data: str | Path | bytes | BufferedIOBase, overlapped_gates: bool = False) -> HaloHpl:
         data_bytes = bytes_from_src(data)
         try:
-            return _raw_tuple2halo_hpl(doppy.rs.raw.halo_hpl.from_bytes_src(data_bytes))
+            return _raw_tuple2halo_hpl(doppy.rs.raw.halo_hpl.from_bytes_src(data_bytes), overlapped_gates=overlapped_gates)
         except RuntimeError as err:
             raise exceptions.RawParsingError(err) from err
 
@@ -245,6 +245,7 @@ def _merge_float_arrays_or_nones(
 
 def _raw_tuple2halo_hpl(
     raw_tuple: tuple[dict[str, Any], dict[str, npt.NDArray[np.float64] | None]],
+    overlapped_gates: bool = False,
 ) -> HaloHpl:
     header_dict, data_dict = raw_tuple
     header = HaloHplHeader(
@@ -290,6 +291,16 @@ def _raw_tuple2halo_hpl(
         -1, header.ngates
     )
     radial_distance = cast(npt.NDArray[np.float64], data_dict["radial_distance"])
+    
+    # Recalculate radial_distance for overlapped gates if requested
+    if overlapped_gates:
+        expected_range = np.arange(header.ngates, dtype=np.float64)
+        # First gate at (0 + 0.5) * range_gate_length, subsequent gates increment by 3m
+        radial_distance = np.zeros(header.ngates, dtype=np.float64)
+        radial_distance[0] = 0.5 * header.range_gate_length
+        for i in range(1, header.ngates):
+            radial_distance[i] = radial_distance[0] + i * 3.0
+    
     azimuth = cast(npt.NDArray[np.float64], data_dict["azimuth"])
     elevation = cast(npt.NDArray[np.float64], data_dict["elevation"])
     radial_velocity = cast(
@@ -341,7 +352,7 @@ def _parser_start_time(s: bytes) -> datetime64:
     return datetime64(datetime.strptime(s.decode(), "%Y%m%d %H:%M:%S.%f"))
 
 
-def _from_src(data: BufferedIOBase) -> HaloHpl:
+def _from_src(data: BufferedIOBase, overlapped_gates: bool = False) -> HaloHpl:
     head = data.read(1000)
     match_header_div = re.search(b"\\*\\*\\*\\*.*\n+", head, re.MULTILINE)
     if match_header_div is None:
@@ -351,7 +362,7 @@ def _from_src(data: BufferedIOBase) -> HaloHpl:
     header_bytes = data.read(div)
     header = _read_header(header_bytes)
     data_bytes = data.read()
-    res = _read_data(data_bytes, header)
+    res = _read_data(data_bytes, header, overlapped_gates)
     return res
 
 
@@ -386,7 +397,7 @@ def _read_header(data: bytes) -> HaloHplHeader:
     return HaloHplHeader.from_dict(data_dict)
 
 
-def _read_data(data: bytes, header: HaloHplHeader) -> HaloHpl:
+def _read_data(data: bytes, header: HaloHplHeader, overlapped_gates: bool = False) -> HaloHpl:
     if not data:
         raise exceptions.RawParsingError("No data found")
     data = data.strip()
@@ -447,7 +458,16 @@ def _read_data(data: bytes, header: HaloHplHeader) -> HaloHpl:
     gate_expected = np.arange(len(gate[0])).astype("float64")
     if not all(np.allclose(gate_expected, gate[i, :]) for i in range(gate.shape[0])):
         raise ValueError("all gate indices should be equal")
-    radial_distance = (gate_expected + 0.5) * header.range_gate_length
+    
+    # Calculate radial_distance based on overlapped_gates option
+    if overlapped_gates:
+        # First gate at (0 + 0.5) * range_gate_length, subsequent gates increment by 3m
+        radial_distance = np.zeros(len(gate_expected), dtype=np.float64)
+        radial_distance[0] = 0.5 * header.range_gate_length
+        for i in range(1, len(gate_expected)):
+            radial_distance[i] = radial_distance[0] + i * 3.0
+    else:
+        radial_distance = (gate_expected + 0.5) * header.range_gate_length
 
     radial_velocity = data2Darr_reshape[:, :, 1]
     intensity = data2Darr_reshape[:, :, 2]

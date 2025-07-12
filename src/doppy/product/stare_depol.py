@@ -10,7 +10,7 @@ import numpy.typing as npt
 
 import doppy
 from doppy import options
-from doppy.product.stare import PulsesPerRay, RayAccumulationTime, Stare
+from doppy.product.stare import Options, PulsesPerRay, RayAccumulationTime, Stare
 
 
 @dataclass
@@ -179,14 +179,16 @@ class StareDepol:
         | Sequence[tuple[BufferedIOBase, str]],
         bg_correction_method: options.BgCorrectionMethod,
         polariser_bleed_through: float = 0,
+        options: Options | None = None,
     ) -> StareDepol:
         co = Stare.from_halo_data(
-            data=co_data, data_bg=co_data_bg, bg_correction_method=bg_correction_method
+            data=co_data, data_bg=co_data_bg, bg_correction_method=bg_correction_method, options=options
         )
         cross = Stare.from_halo_data(
             data=cross_data,
             data_bg=cross_data_bg,
             bg_correction_method=bg_correction_method,
+            options=options,
         )
         return cls(co, cross, polariser_bleed_through)
 

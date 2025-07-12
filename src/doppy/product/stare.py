@@ -20,6 +20,11 @@ SelectionGroupKeyType: TypeAlias = tuple[int,]
 
 
 @dataclass(slots=True)
+class Options:
+    overlapped_gates: bool = False
+
+
+@dataclass(slots=True)
 class RayAccumulationTime:
     # in seconds
     value: float
@@ -128,8 +133,11 @@ class Stare:
         | Sequence[tuple[bytes, str]]
         | Sequence[tuple[BufferedIOBase, str]],
         bg_correction_method: options.BgCorrectionMethod,
+        options: Options | None = None,
     ) -> Stare:
-        raws = doppy.raw.HaloHpl.from_srcs(data)
+        raws = doppy.raw.HaloHpl.from_srcs(
+            data, overlapped_gates=options.overlapped_gates if options else False
+        )
 
         if len(raws) == 0:
             raise doppy.exceptions.NoDataError("HaloHpl data missing")
