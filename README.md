@@ -61,7 +61,7 @@ stare_depol = doppy.product.StareDepol.from_halo_data(
     polariser_bleed_through=0,
 )
 
-# For overlapped gates (3m spacing instead of normal gate spacing)
+# For overlapped gates (custom gate spacing)
 stare_depol = doppy.product.StareDepol.from_halo_data(
     co_data=LIST_OF_STARE_CO_FILE_PATHS,
     co_data_bg=LIST_OF_BACKGROUND_CO_FILE_PATHS,
@@ -69,7 +69,9 @@ stare_depol = doppy.product.StareDepol.from_halo_data(
     cross_data_bg=LIST_OF_BACKGROUND_CROSS_FILE_PATHS,
     bg_correction_method=doppy.options.BgCorrectionMethod.FIT,
     polariser_bleed_through=0,
-    options=doppy.product.stare.Options(overlapped_gates=True),
+    overlapped_gates=True,
+    gate_length_div=2.0,
+    gate_index_mul=3.0,
 )
 
 stare_depol.write_to_netcdf(FILENAME)
