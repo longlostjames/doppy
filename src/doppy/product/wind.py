@@ -20,7 +20,11 @@ SelectionGroupKeyType: TypeAlias = tuple[int, int, tuple[int, ...]]
 
 @dataclass
 class Options:
-    azimuth_offset_deg: float | None
+    azimuth_offset_deg: float | None = None
+    overlapped_gates: bool = False
+    gate_length_div: float = 2.0
+    gate_index_mul: float = 3.0
+    # ... add any other options you need ...
 
 
 @dataclass

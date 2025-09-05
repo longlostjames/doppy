@@ -27,21 +27,17 @@ pip install doppy
 ```python
 import doppy
 
-# Standard usage
-stare = doppy.product.Stare.from_halo_data(
-    data=LIST_OF_STARE_FILE_PATHS,
-    data_bg=LIST_OF_BACKGROUND_FILE_PATHS,
-    bg_correction_method=doppy.options.BgCorrectionMethod.FIT,
+options = doppy.product.stare.Options(
+    overlapped_gates=True,
+    gate_length_div=2.0,
+    gate_index_mul=3.0,
 )
 
-# For overlapped gates (custom gate spacing)
 stare = doppy.product.Stare.from_halo_data(
     data=LIST_OF_STARE_FILE_PATHS,
     data_bg=LIST_OF_BACKGROUND_FILE_PATHS,
     bg_correction_method=doppy.options.BgCorrectionMethod.FIT,
-    overlapped_gates=True,           # Enable overlapped gate calculation
-    gate_length_div=2.0,             # Optional: divisor for gate length (default 2.0)
-    gate_index_mul=3.0,              # Optional: multiplier for gate index (default 3.0)
+    options=options,
 )
 
 stare.write_to_netcdf(FILENAME)
@@ -52,26 +48,20 @@ stare.write_to_netcdf(FILENAME)
 ```python
 import doppy
 
-stare_depol = doppy.product.StareDepol.from_halo_data(
-    co_data=LIST_OF_STARE_CO_FILE_PATHS,
-    co_data_bg=LIST_OF_BACKGROUND_CO_FILE_PATHS,
-    cross_data=LIST_OF_STARE_CROSS_FILE_PATHS,
-    cross_data_bg=LIST_OF_BACKGROUND_CROSS_FILE_PATHS,
-    bg_correction_method=doppy.options.BgCorrectionMethod.FIT,
-    polariser_bleed_through=0,
-)
-
-# For overlapped gates (custom gate spacing)
-stare_depol = doppy.product.StareDepol.from_halo_data(
-    co_data=LIST_OF_STARE_CO_FILE_PATHS,
-    co_data_bg=LIST_OF_BACKGROUND_CO_FILE_PATHS,
-    cross_data=LIST_OF_STARE_CROSS_FILE_PATHS,
-    cross_data_bg=LIST_OF_BACKGROUND_CROSS_FILE_PATHS,
-    bg_correction_method=doppy.options.BgCorrectionMethod.FIT,
-    polariser_bleed_through=0,
+options = doppy.product.stare.Options(
     overlapped_gates=True,
     gate_length_div=2.0,
     gate_index_mul=3.0,
+)
+
+stare_depol = doppy.product.StareDepol.from_halo_data(
+    co_data=LIST_OF_STARE_CO_FILE_PATHS,
+    co_data_bg=LIST_OF_BACKGROUND_CO_FILE_PATHS,
+    cross_data=LIST_OF_STARE_CROSS_FILE_PATHS,
+    cross_data_bg=LIST_OF_BACKGROUND_CROSS_FILE_PATHS,
+    bg_correction_method=doppy.options.BgCorrectionMethod.FIT,
+    polariser_bleed_through=0,
+    options=options,
 )
 
 stare_depol.write_to_netcdf(FILENAME)
@@ -82,30 +72,16 @@ stare_depol.write_to_netcdf(FILENAME)
 ```python
 import doppy
 
-# Standard wind scan usage
+options = doppy.product.wind.Options(
+    azimuth_offset_deg=30,
+    overlapped_gates=True,
+    gate_length_div=2.0,
+    gate_index_mul=3.0,
+)
+
 wind = doppy.product.Wind.from_halo_data(
     data=LIST_OF_WIND_SCAN_HPL_FILES,
-)
-
-# With instrument azimuth offset and overlapped gates
-wind = doppy.product.Wind.from_halo_data(
-    data=LIST_OF_WIND_SCAN_HPL_FILES,
-    options=doppy.product.wind.Options(
-        azimuth_offset_deg=30,
-        overlapped_gates=True,       # Enable overlapped gate calculation
-        gate_length_div=2.0,         # Optional: divisor for gate length (default 2.0)
-        gate_index_mul=3.0,          # Optional: multiplier for gate index (default 3.0)
-    ),
-)
-
-# For windcube wls200s use
-wind = doppy.product.Wind.from_windcube_data(
-    data=LIST_OF_VAD_NETCDF_FILES,
-)
-
-# For windcube wls70 use
-wind = doppy.product.Wind.from_wls70_data(
-    data=LIST_OF_RTD_FILES,
+    options=options,
 )
 
 wind.write_to_netcdf(FILENAME)

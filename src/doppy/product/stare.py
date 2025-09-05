@@ -5,14 +5,8 @@ from dataclasses import dataclass
 from io import BufferedIOBase
 from pathlib import Path
 from typing import Sequence, Tuple, TypeAlias
-
-import numpy as np
-import numpy.typing as npt
-import scipy
 from scipy.ndimage import median_filter, uniform_filter
 from sklearn.cluster import KMeans
-
-import doppy
 from doppy import defaults, options
 from doppy.product.noise_utils import detect_wind_noise
 
@@ -124,19 +118,21 @@ class Stare:
     @classmethod
     def from_halo_data(
         cls,
-        data: Sequence[str]
-        | Sequence[Path]
-        | Sequence[bytes]
-        | Sequence[BufferedIOBase],
-        data_bg: Sequence[str]
-        | Sequence[Path]
-        | Sequence[tuple[bytes, str]]
-        | Sequence[tuple[BufferedIOBase, str]],
-        bg_correction_method: options.BgCorrectionMethod,
-        options: Options | None = None,
-    ) -> Stare:
+        data,
+        data_bg=None,
+        bg_correction_method=None,
+        options=None,
+        **kwargs,
+    ):
+        # Extract gate options from the options object, with defaults
+        overlapped_gates = getattr(options, "overlapped_gates", False) if options else False
+        gate_length_div = getattr(options, "gate_length_div", 2.0) if options else 2.0
+        gate_index_mul = getattr(options, "gate_index_mul", 3.0) if options else 3.0
+
+        # Pass options to HaloHpl loader
         raws = doppy.raw.HaloHpl.from_srcs(
-            data, overlapped_gates=options.overlapped_gates if options else False
+            data,
+            options=options,
         )
 
         if len(raws) == 0:
