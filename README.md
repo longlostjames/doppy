@@ -27,18 +27,21 @@ pip install doppy
 ```python
 import doppy
 
+# Standard usage
 stare = doppy.product.Stare.from_halo_data(
     data=LIST_OF_STARE_FILE_PATHS,
     data_bg=LIST_OF_BACKGROUND_FILE_PATHS,
     bg_correction_method=doppy.options.BgCorrectionMethod.FIT,
 )
 
-# For overlapped gates (3m spacing instead of normal gate spacing)
+# For overlapped gates (custom gate spacing)
 stare = doppy.product.Stare.from_halo_data(
     data=LIST_OF_STARE_FILE_PATHS,
     data_bg=LIST_OF_BACKGROUND_FILE_PATHS,
     bg_correction_method=doppy.options.BgCorrectionMethod.FIT,
-    options=doppy.product.stare.Options(overlapped_gates=True),
+    overlapped_gates=True,           # Enable overlapped gate calculation
+    gate_length_div=2.0,             # Optional: divisor for gate length (default 2.0)
+    gate_index_mul=3.0,              # Optional: multiplier for gate index (default 3.0)
 )
 
 stare.write_to_netcdf(FILENAME)
@@ -77,14 +80,20 @@ stare_depol.write_to_netcdf(FILENAME)
 ```python
 import doppy
 
+# Standard wind scan usage
 wind = doppy.product.Wind.from_halo_data(
     data=LIST_OF_WIND_SCAN_HPL_FILES,
 )
 
-# You can also pass instrument azimuth offset in degrees as an option
+# With instrument azimuth offset and overlapped gates
 wind = doppy.product.Wind.from_halo_data(
     data=LIST_OF_WIND_SCAN_HPL_FILES,
-    options=doppy.product.wind.Options(azimuth_offset_deg=30),
+    options=doppy.product.wind.Options(
+        azimuth_offset_deg=30,
+        overlapped_gates=True,       # Enable overlapped gate calculation
+        gate_length_div=2.0,         # Optional: divisor for gate length (default 2.0)
+        gate_index_mul=3.0,          # Optional: multiplier for gate index (default 3.0)
+    ),
 )
 
 # For windcube wls200s use
@@ -119,3 +128,8 @@ raws_wls200s = doppy.raw.WindCube.from_vad_or_dbs_srcs(LIST_OF_VAD_NETCDF_FILES)
 # Windcube WLS70
 raws_wls70 = doppy.raw.Wls70.from_srcs(LIST_OF_RTD_FILES)
 ```
+
+**Notes:**
+- `overlapped_gates=True` enables calculation of range gates using the overlapping formula.
+- `gate_length_div` and `gate_index_mul` allow you to customize the gate calculation if your instrument configuration differs from the default.
+- These options are available for both Stare and Wind products.
