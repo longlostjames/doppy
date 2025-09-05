@@ -81,7 +81,29 @@ options = doppy.product.wind.Options(
 
 wind = doppy.product.Wind.from_halo_data(
     data=LIST_OF_WIND_SCAN_HPL_FILES,
-    options=options,
+    options=doppy.product.wind.Options(azimuth_offset_deg=30),
+)
+
+# For overlapped gates (3m spacing) with VAD scans
+wind = doppy.product.Wind.from_halo_data(
+    data=LIST_OF_WIND_SCAN_HPL_FILES,
+    options=doppy.product.wind.Options(overlapped_gates=True),
+)
+
+# You can combine both options
+wind = doppy.product.Wind.from_halo_data(
+    data=LIST_OF_WIND_SCAN_HPL_FILES,
+    options=doppy.product.wind.Options(azimuth_offset_deg=30, overlapped_gates=True),
+)
+
+# For windcube wls200s use
+wind = doppy.product.Wind.from_windcube_data(
+    data=LIST_OF_VAD_NETCDF_FILES,
+)
+
+# For windcube wls70 use
+wind = doppy.product.Wind.from_wls70_data(
+    data=LIST_OF_RTD_FILES,
 )
 
 wind.write_to_netcdf(FILENAME)

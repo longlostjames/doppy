@@ -239,6 +239,14 @@ class Stare:
                 mask=self.mask_beta,
             )
             nc.add_variable(
+                name="snr",
+                dimensions=("time", "range"),
+                units="1",
+                long_name="signal-to-noise ratio",
+                data=self.snr,
+                dtype="f4",
+            )
+            nc.add_variable(
                 name="v",
                 dimensions=("time", "range"),
                 units="m s-1",

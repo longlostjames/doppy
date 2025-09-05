@@ -1,3 +1,4 @@
+from .galion_scn import GalionScn
 from .halo_bg import HaloBg
 from .halo_hpl import HaloHpl
 from .halo_sys_params import HaloSysParams
@@ -6,6 +7,7 @@ from .wls70 import Wls70
 from .wls77 import Wls77
 
 __all__ = [
+    "GalionScn",
     "HaloHpl",
     "HaloBg",
     "HaloSysParams",
