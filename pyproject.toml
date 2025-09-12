@@ -3,10 +3,10 @@ requires = ["maturin>=1.5,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "doppy"
+name = "doppy-ncas-fork" 
+authors = [{ name = "Chris Baxter-Longcroft Walden", email = "chris.walden@ncas.ac.uk" }, { name = "Niko Leskinen", email = "niko.leskinen@fmi.fi" }]
 summary = "Doppler lidar processing"
 dynamic = ["version"]
-authors = [{ name = "Niko Leskinen", email = "niko.leskinen@fmi.fi" }]
 requires-python = ">=3.10"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -51,10 +51,10 @@ dev = [
 doppy = "doppy.__main__:app"
 
 [project.urls]
-Homepage = "https://github.com/actris-cloudnet/doppy"
-Repository = "https://github.com/actris-cloudnet/doppy"
-Changelog = "https://github.com/actris-cloudnet/doppy/blob/main/CHANGELOG.md"
-"Bug Tracker" = "https://github.com/actris-cloudnet/doppy/issues"
+Homepage = "https://github.com/longlostjames/doppy"
+Repository = "https://github.com/longlostjames/doppy"
+Changelog = "https://github.com/longlostjames/doppy/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/longlostjames/doppy/issues"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
