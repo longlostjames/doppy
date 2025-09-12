@@ -128,6 +128,7 @@ class Stare:
         | Sequence[tuple[bytes, str]]
         | Sequence[tuple[BufferedIOBase, str]],
         bg_correction_method: options.BgCorrectionMethod,
+        overlapped_gates: options.OverlappedGatesOptions | None = None,
     ) -> Stare:
         raws = doppy.raw.HaloHpl.from_srcs(data)
 
@@ -140,6 +141,28 @@ class Stare:
             .non_strictly_increasing_timesteps_removed()
             .nans_removed()
         )
+
+        # Override radial distance if overlapped gates options are provided
+        # This must be done before background corrections since they might depend on radial distances
+        if overlapped_gates is not None:
+            from ..raw.halo_hpl import compute_radial_distance_with_overlapped_gates
+            radial_distance = compute_radial_distance_with_overlapped_gates(
+                raw.header, overlapped_gates
+            )
+            # Update the raw object with the new radial distance
+            raw = doppy.raw.HaloHpl(
+                header=raw.header,
+                time=raw.time,
+                radial_distance=radial_distance,
+                azimuth=raw.azimuth,
+                elevation=raw.elevation,
+                pitch=raw.pitch,
+                roll=raw.roll,
+                radial_velocity=raw.radial_velocity,
+                intensity=raw.intensity,
+                beta=raw.beta,
+                spectral_width=raw.spectral_width,
+            )
 
         bgs = doppy.raw.HaloBg.from_srcs(data_bg)
         bgs = [bg[:, : raw.header.ngates] for bg in bgs]

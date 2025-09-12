@@ -13,6 +13,7 @@ from scipy.ndimage import generic_filter
 from sklearn.cluster import KMeans
 
 import doppy
+from doppy import options
 
 # ngates, gate points, elevation angle, tuple of sorted azimuth angles
 SelectionGroupKeyType: TypeAlias = tuple[int, int, tuple[int, ...]]
@@ -64,6 +65,7 @@ class Wind:
         | Sequence[bytes]
         | Sequence[BufferedIOBase],
         options: Options | None = None,
+        overlapped_gates: options.OverlappedGatesOptions | None = None,
     ) -> Wind:
         raws = doppy.raw.HaloHpl.from_srcs(data)
 
@@ -78,6 +80,28 @@ class Wind:
         )
         if len(raw.time) == 0:
             raise doppy.exceptions.NoDataError("No suitable data for the wind product")
+
+        # Override radial distance if overlapped gates options are provided
+        # This must be done before wind processing since it affects height calculations
+        if overlapped_gates is not None:
+            from ..raw.halo_hpl import compute_radial_distance_with_overlapped_gates
+            radial_distance = compute_radial_distance_with_overlapped_gates(
+                raw.header, overlapped_gates
+            )
+            # Update the raw object with the new radial distance
+            raw = doppy.raw.HaloHpl(
+                header=raw.header,
+                time=raw.time,
+                radial_distance=radial_distance,
+                azimuth=raw.azimuth,
+                elevation=raw.elevation,
+                pitch=raw.pitch,
+                roll=raw.roll,
+                radial_velocity=raw.radial_velocity,
+                intensity=raw.intensity,
+                beta=raw.beta,
+                spectral_width=raw.spectral_width,
+            )
 
         if options and options.azimuth_offset_deg:
             raw.azimuth += options.azimuth_offset_deg
@@ -107,6 +131,7 @@ class Wind:
         rmse = np.concatenate(rmse_list)
         if not np.allclose(elevation, elevation[0]):
             raise ValueError("Elevation is expected to stay same")
+        
         height = raw.radial_distance * np.sin(np.deg2rad(elevation[0]))
         mask = _compute_mask(wind, rmse)
         return Wind(

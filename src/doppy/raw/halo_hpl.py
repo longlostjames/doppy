@@ -14,9 +14,52 @@ import numpy.typing as npt
 from numpy import datetime64, timedelta64
 
 import doppy
-from doppy import exceptions
+from doppy import exceptions, options
 from doppy.raw.utils import bytes_from_src
 from doppy.utils import merge_all_equal
+
+
+def compute_radial_distance_with_overlapped_gates(
+    header: HaloHplHeader,
+    overlapped_gates_options: options.OverlappedGatesOptions | None = None,
+) -> npt.NDArray[np.float64]:
+    """Compute radial distance based on overlapped gates options.
+    
+    This function allows overriding the radial distance calculation for HALO data
+    in product functions, providing control over overlapped vs common gate formulas.
+    
+    Parameters
+    ----------
+    header : HaloHplHeader
+        Header containing range gate parameters
+    overlapped_gates_options : OverlappedGatesOptions, optional
+        Options for overlapped gates processing
+        
+    Returns
+    -------
+    radial_distance : ndarray
+        Computed radial distances for each gate
+    """
+    if overlapped_gates_options is None:
+        overlapped_gates_options = options.OverlappedGatesOptions()
+    
+    gate_indices = np.arange(header.ngates, dtype=np.float64)
+    
+    if overlapped_gates_options.mode == options.OverlappedGatesMode.AUTO:
+        # Use default - let the Rust layer handle it based on header
+        # This is just a fallback if someone calls this function directly
+        return (gate_indices + 0.5) * header.range_gate_length
+    elif overlapped_gates_options.mode == options.OverlappedGatesMode.FORCE_COMMON:
+        # Force common formula: (gate_index + 0.5) * range_gate_length
+        return (gate_indices + 0.5) * header.range_gate_length
+    elif overlapped_gates_options.mode == options.OverlappedGatesMode.FORCE_OVERLAPPED:
+        # Force overlapped with default parameters (div=2, mul=3)
+        div = overlapped_gates_options.custom_div if overlapped_gates_options.custom_div is not None else 2.0
+        mul = overlapped_gates_options.custom_mul if overlapped_gates_options.custom_mul is not None else 3.0
+        return header.range_gate_length / div + gate_indices * mul
+    else:
+        # Default fallback - use common formula
+        return (gate_indices + 0.5) * header.range_gate_length
 
 
 @dataclass
