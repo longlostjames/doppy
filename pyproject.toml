@@ -3,9 +3,9 @@ requires = ["maturin>=1.5,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "doppy-ncas-fork" 
+name = "doppy_ncas_fork" 
 authors = [{ name = "Chris Baxter-Longcroft Walden", email = "chris.walden@ncas.ac.uk" }, { name = "Niko Leskinen", email = "niko.leskinen@fmi.fi" }]
-summary = "Doppler lidar processing"
+summary = "Doppler lidar processing - NCAS fork with option to force overlapped gates"
 dynamic = ["version"]
 requires-python = ">=3.10"
 readme = "README.md"
